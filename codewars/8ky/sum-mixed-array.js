@@ -6,4 +6,6 @@ function sumMix(x) {
   const initialValue = 0;
   const sum = x.reduce((accumulator, currentValue) => +accumulator + (+currentValue), initialValue);
   return sum;
+  // return x.map(a => +a).reduce((a, b) => a + b);
+
 }
