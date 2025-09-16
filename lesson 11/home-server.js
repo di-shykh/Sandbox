@@ -1,8 +1,6 @@
-import {
-  error
-} from 'console';
 import http from 'http';
 
+const PORT = 4000;
 const status = {
   'totalRequests': 0,
   'routes': {
@@ -35,8 +33,9 @@ function setStatus(rout) {
 }
 
 function getUser(id) {
-  if (users.includes(users[id]))
-    return JSON.stringify(users[id]);
+  const user = users.find(user => user.id === id);
+  if (user)
+    return JSON.stringify(user);
   else return JSON.stringify({
     error: 'User not found'
   });
@@ -92,4 +91,4 @@ const server = http.createServer((req, res) => {
 
 });
 
-server.listen(4000);
+server.listen(PORT);
