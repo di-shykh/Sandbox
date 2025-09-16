@@ -88,4 +88,6 @@ const server = http.createServer((req, res) => {
 
 });
 
-server.listen(PORT);
+server.listen(PORT, () => {
+  console.log(`Сервер запущен на http://localhost:${PORT}`);
+});
