@@ -29,7 +29,8 @@ const users = [{
 
 function setStatus(rout) {
   status.totalRequests++;
-  status.routes[rout]++;
+  if (status[rout] !== undefined)
+    status.routes[rout]++;
 }
 
 function getUser(id) {
@@ -39,6 +40,21 @@ function getUser(id) {
   else return JSON.stringify({
     error: 'User not found'
   });
+}
+
+function sendResponse(res, statusCode, contentType, data) {
+  res.writeHead(statusCode, {
+    'Content-Type': contentType
+  });
+  res.end(data);
+}
+
+function sendJSON(res, statusCode, data) {
+  sendResponse(res, statusCode, 'application/json', data);
+}
+
+function sendText(res, statusCode, text) {
+  sendResponse(res, statusCode, 'text/plain', text);
 }
 
 const server = http.createServer((req, res) => {
@@ -51,42 +67,23 @@ const server = http.createServer((req, res) => {
   const idFromUrl = parseInt(arrFromURL[arrFromURL.length - 1]);
 
   if (arrFromURL.includes('users') && !isNaN(idFromUrl) && req.method === 'GET') {
-    res.writeHead(200, {
-      'Content-Type': 'application/json'
-    });
-    res.end(getUser(idFromUrl));
+    sendJSON(res, 200, getUser(idFromUrl));
   } else if (req.url === '/hello' && req.method === 'GET') {
     setStatus('/hello');
-    res.writeHead(200, {
-      'Content-Type': 'text/plain'
-    });
-    res.end('Hello from my server!');
+    sendText(res, 200, 'Hello from my server!');
   } else if (req.url === '/time' && req.method === 'GET') {
     const time = new Date().toTimeString().slice(0, 5);
-    res.writeHead(200, {
-      'Content-Type': 'text/plain'
-    });
-    res.end(`Current time is: ${time}`);
+    sendText(res, 200, `Current time is: ${time}`);
   } else if (req.url === '/about' && req.method === 'GET') {
     setStatus('/about');
-    res.writeHead(200, {
-      'Content-Type': 'text/plain'
-    });
-    res.end('My name is Diana, I study Back-end.');
+    sendText(res, 200, 'My name is Diana, I study Back-end.');
   } else if (req.url === '/users' && req.method === 'GET') {
     setStatus('/users');
-    res.writeHead(200, {
-      'Content-Type': 'application/json'
-    });
-    res.end(JSON.stringify(users));
+    sendJSON(res, 200, JSON.stringify(users));
   } else if (req.url === '/stats' && req.method === 'GET') {
-    res.writeHead(200, {
-      'Content-Type': 'application/json'
-    });
-    res.end(JSON.stringify(status));
+    sendJSON(res, 200, JSON.stringify(status));
   } else {
-    res.writeHead(404);
-    res.end('Page not found');
+    sendText(res, 404, 'Page not found');
   }
 
 });
