@@ -29,7 +29,7 @@ const users = [{
 
 function setStatus(rout) {
   status.totalRequests++;
-  if (status[rout] !== undefined)
+  if (status.routes[rout] !== undefined)
     status.routes[rout]++;
 }
 
@@ -64,7 +64,7 @@ const server = http.createServer((req, res) => {
   console.log(`[${req.method}]${req.url} at ${formatDate}`); //логирование
 
   let arrFromURL = req.url.split('/');
-  const idFromUrl = parseInt(arrFromURL[arrFromURL.length - 1]);
+  const idFromUrl = parseInt(arrFromURL[2]);
 
   if (arrFromURL.includes('users') && !isNaN(idFromUrl) && req.method === 'GET') {
     sendJSON(res, 200, getUser(idFromUrl));
