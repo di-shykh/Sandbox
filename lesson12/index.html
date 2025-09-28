@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Таймер</title>
+    <style>
+      body {
+        font-family: sans-serif;
+        max-width: 600px;
+        margin: 2rem auto;
+      }
+      button {
+        margin-right: 0.5rem;
+      }
+      ul {
+        list-style: none;
+        padding: 0;
+      }
+      li {
+        margin-bottom: 0.5rem;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>⏱ Таймер</h1>
+    <button id="save">Сохранить текущее время</button>
+    <button id="refresh">Обновить список</button>
+    <ul id="list"></ul>
+
+    <script>
+      const API_URL = 'http://localhost:3000';
+
+      const list = document.getElementById('list');
+      const saveButton = document.getElementById('save');
+      const refreshButton = document.getElementById('refresh');
+
+      function formatTime(isoString) {
+        const date = new Date(isoString);
+        const pad = (n, z = 2) => n.toString().padStart(z, '0');
+        return `${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(
+          date.getSeconds()
+        )}.${pad(date.getMilliseconds(), 3)}`;
+      }
+
+      async function loadTimes() {
+        const res = await fetch(`${API_URL}/timer`);
+        const data = await res.json();
+        list.innerHTML = '';
+        data.forEach((item) => {
+          const li = document.createElement('li');
+          const formatted = formatTime(item.saved_at);
+          li.innerHTML = `${formatted} <button data-id="${item.id}">удалить</button>`;
+          list.appendChild(li);
+        });
+      }
+
+      async function saveTime() {
+        await fetch(`${API_URL}/timer/save`, { method: 'POST' });
+      }
+
+      async function deleteTime(id) {
+        await fetch(`${API_URL}/timer/${id}`, { method: 'DELETE' });
+        loadTimes();
+      }
+
+      list.addEventListener('click', (e) => {
+        if (e.target.tagName === 'BUTTON') {
+          const id = e.target.getAttribute('data-id');
+          deleteTime(id);
+        }
+      });
+
+      saveButton.addEventListener('click', saveTime);
+      refreshButton.addEventListener('click', loadTimes);
+
+      loadTimes(); // Загружаем список при открытии страницы
+    </script>
+  </body>
+</html>

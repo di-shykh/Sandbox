@@ -1,7 +1,6 @@
-import {
-  error
-} from 'console';
 import http from 'http';
+
+const PORT = 4000;
 
 const status = {
   'totalRequests': 0,
@@ -31,7 +30,8 @@ const users = [{
 
 function setStatus(rout) {
   status.totalRequests++;
-  status.routes[rout]++;
+  if (status.routes[rout] !== undefined)
+    status.routes[rout]++;
 }
 
 function getUser(id) {
@@ -51,11 +51,17 @@ const server = http.createServer((req, res) => {
   let arrFromURL = req.url.split('/');
   const idFromUrl = parseInt(arrFromURL[arrFromURL.length - 1]);
 
-  if (arrFromURL.includes('users') && !isNaN(idFromUrl) && req.method === 'GET') {
+  if (arrFromURL[1] === 'users' && req.method === 'GET') {
+    setStatus('/users');
     res.writeHead(200, {
       'Content-Type': 'application/json'
     });
-    res.end(getUser(idFromUrl));
+    if (!isNaN(idFromUrl)) {
+      res.end(getUser(idFromUrl));
+    } else if (req.url === '/users') {
+      res.end(JSON.stringify(users));
+    }
+
   } else if (req.url === '/hello' && req.method === 'GET') {
     setStatus('/hello');
     res.writeHead(200, {
@@ -74,12 +80,6 @@ const server = http.createServer((req, res) => {
       'Content-Type': 'text/plain'
     });
     res.end('My name is Diana, I study Back-end.');
-  } else if (req.url === '/users' && req.method === 'GET') {
-    setStatus('/users');
-    res.writeHead(200, {
-      'Content-Type': 'application/json'
-    });
-    res.end(JSON.stringify(users));
   } else if (req.url === '/stats' && req.method === 'GET') {
     res.writeHead(200, {
       'Content-Type': 'application/json'
@@ -89,7 +89,6 @@ const server = http.createServer((req, res) => {
     res.writeHead(404);
     res.end('Page not found');
   }
-
 });
 
-server.listen(4000);
+server.listen(PORT);
