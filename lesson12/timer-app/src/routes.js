@@ -4,7 +4,8 @@ import {
 import {
   getAllTimes,
   saveCurrentTime,
-  deleteTimeById
+  deleteTimeById,
+  updateTimeById
 } from './repositories/timer.repository.js';
 
 export async function router(req, res) {
@@ -42,6 +43,35 @@ export async function router(req, res) {
     res.end(JSON.stringify({
       message: `Deleted time with ID ${id}`
     }));
+    return;
+  }
+
+  if (url.pathname && url.pathname.startsWith('/timer/') && url.query.saved_at && method === 'PUT') {
+    let id = url.pathname.split('/')[2];
+    id = Number(id);
+    if (Number.isNaN(id) || id <= 0) {
+      res.writeHead(400, {
+        'Content-Type': 'application/json'
+      })
+      res.end(JSON.stringify({
+        "error": "Invalid timer ID"
+      }));
+    }
+    const savedAt = url.query.saved_at;
+    const date = new Date(savedAt);
+    if (Number.isNaN(date.getTime()) && date.toISOString() !== savedAt) {
+      res.writeHead(400, {
+        'Content-Type': 'application/json'
+      });
+      res.end(JSON.stringify({
+        "error": "Invalid saved_at format"
+      }));
+    }
+    const newTime = await updateTimeById(id, savedAt);
+    res.writeHead(200, {
+      'Content-Type': 'application/json'
+    });
+    res.end(JSON.stringify(newTime));
     return;
   }
 

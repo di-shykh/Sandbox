@@ -15,3 +15,11 @@ export async function saveCurrentTime() {
 export async function deleteTimeById(id) {
   await pool.query('DELETE FROM times WHERE id = $1', [id]);
 }
+
+export async function updateTimeById(id, newTimestamp) {
+  const result = await pool.query(
+    'UPDATE times SET saved_at = $2 WHERE id = $1 RETURNING *',
+    [id, newTimestamp]
+  );
+  return result.rows[0];
+}
