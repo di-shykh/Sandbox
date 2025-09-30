@@ -5,7 +5,8 @@ import {
   getAllTimes,
   saveCurrentTime,
   deleteTimeById,
-  updateTimeById
+  updateTimeById,
+  getTimesFromTo
 } from './repositories/timer.repository.js';
 
 export async function router(req, res) {
@@ -74,6 +75,11 @@ export async function router(req, res) {
     res.end(JSON.stringify(newTime));
     return;
   }
+  //подумай над параметрами в условии (from to может не быть!)
+  if (url.pathname && url.pathname.startsWith('/timer/') && url.query.from && url.query.to && method === 'GET') {
+
+  }
+
 
   res.writeHead(404, {
     'Content-Type': 'text/plain'
