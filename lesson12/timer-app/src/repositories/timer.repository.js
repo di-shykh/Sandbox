@@ -27,11 +27,11 @@ export async function updateTimeById(id, newTimestamp) {
 export async function getTimesFromTo(from, to) {
   let result;
   if (from && to) {
-    result = await pool.query('SELECT * FROM times WHERE saved_at BETWEEN $1 AND $2', [from, to]);
+    result = await pool.query('SELECT * FROM times WHERE saved_at BETWEEN $1 AND $2 ORDER BY saved_at DESC', [from, to]);
   } else if (from) {
-    result = await pool.query('SELECT * FROM times WHERE saved_at >= $1', [from]);
+    result = await pool.query('SELECT * FROM times WHERE saved_at >= $1 ORDER BY saved_at DESC', [from]);
   } else if (to) {
-    result = await pool.query('SELECT * FROM times WHERE saved_at <= $1', [to]);
+    result = await pool.query('SELECT * FROM times WHERE saved_at <= $1 ORDER BY saved_at DESC', [to]);
   } else {
     return await getAllTimes();
   }
@@ -39,8 +39,12 @@ export async function getTimesFromTo(from, to) {
 }
 
 export function checkDateTime(dateTime) {
-  const date = new Date(dateTime);
-  if (!Number.isNaN(date.getTime()) && date.toISOString() === dateTime)
-    return true;
-  else return false;
+  try {
+    const date = new Date(dateTime);
+    return !Number.isNaN(date.getTime()) && date.toISOString() === dateTime;
+
+  } catch {
+    return false;
+  }
+
 }

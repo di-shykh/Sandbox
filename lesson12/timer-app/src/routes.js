@@ -17,13 +17,57 @@ export async function router(req, res) {
 
   // Обработка запроса: GET /timer
   if (url.pathname === '/timer' && method === 'GET') {
-    const times = await getAllTimes();
+    // const times = await getAllTimes();
 
-    // Говорим клиенту: "Всё ок, вот JSON"
-    res.writeHead(200, {
-      'Content-Type': 'application/json'
-    });
-    res.end(JSON.stringify(times)); // Отправляем массив записей в формате JSON
+    // // Говорим клиенту: "Всё ок, вот JSON"
+    // res.writeHead(200, {
+    //   'Content-Type': 'application/json'
+    // });
+    // res.end(JSON.stringify(times)); // Отправляем массив записей в формате JSON
+    // return;
+    let from, to;
+    if (url.query.from) {
+      if (checkDateTime(url.query.from)) {
+        from = url.query.from;
+      } else {
+        res.writeHead(400, {
+          'Content-Type': 'application/json'
+        });
+        res.end(JSON.stringify({
+          "error": "Invalid 'from' date format. Use ISO 8601 format (e.g., 2023-12-01T10:30:00.000Z)."
+        }));
+        return;
+      }
+    }
+    if (url.query.to) {
+      if (checkDateTime(url.query.to)) {
+        to = url.query.to;
+      } else {
+        res.writeHead(400, {
+          'Content-Type': 'application/json'
+        });
+        res.end(JSON.stringify({
+          "error": "Invalid 'to' date format. Use ISO 8601 format (e.g., 2023-12-01T10:30:00.000Z)."
+        }));
+        return;
+      }
+
+    }
+    try {
+      const times = await getTimesFromTo(from, to);
+      res.writeHead(200, {
+        'Content-Type': 'application/json'
+      })
+      res.end(JSON.stringify(times));
+
+    } catch (error) {
+      res.writeHead(500, {
+        'Content-Type': 'application/json'
+      })
+      res.end(JSON.stringify({
+        "error": "Internal server error"
+      }));
+    }
     return;
   }
 
@@ -75,21 +119,6 @@ export async function router(req, res) {
     });
     res.end(JSON.stringify(newTime));
     return;
-  }
-  //подумай над параметрами в условии (from to может не быть!)
-  if (url.pathname && url.pathname.startsWith('/timer/') || (url.query.from || url.query.to) && method === 'GET') {
-    let from, to;
-    if (url.query.from && checkDateTime(url.query.from)) {
-      from = url.query.from;
-    }
-    if (url.query.to && checkDateTime(url.query.to)) {
-      to = url.query.to;
-    }
-    const timeFromTo = await getTimesFromTo(from, to);
-    res.writeHead(200, {
-      'Content-Type': 'application/json'
-    });
-    res.end(JSON.stringify(timeFromTo));
   }
   res.writeHead(404, {
     'Content-Type': 'text/plain'
