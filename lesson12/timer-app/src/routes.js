@@ -6,7 +6,8 @@ import {
   saveCurrentTime,
   deleteTimeById,
   updateTimeById,
-  getTimesFromTo
+  getTimesFromTo,
+  checkDateTime
 } from './repositories/timer.repository.js';
 
 export async function router(req, res) {
@@ -76,11 +77,20 @@ export async function router(req, res) {
     return;
   }
   //подумай над параметрами в условии (from to может не быть!)
-  if (url.pathname && url.pathname.startsWith('/timer/') && url.query.from && url.query.to && method === 'GET') {
-
+  if (url.pathname && url.pathname.startsWith('/timer/') || (url.query.from || url.query.to) && method === 'GET') {
+    let from, to;
+    if (url.query.from && checkDateTime(url.query.from)) {
+      from = url.query.from;
+    }
+    if (url.query.to && checkDateTime(url.query.to)) {
+      to = url.query.to;
+    }
+    const timeFromTo = await getTimesFromTo(from, to);
+    res.writeHead(200, {
+      'Content-Type': 'application/json'
+    });
+    res.end(JSON.stringify(timeFromTo));
   }
-
-
   res.writeHead(404, {
     'Content-Type': 'text/plain'
   });

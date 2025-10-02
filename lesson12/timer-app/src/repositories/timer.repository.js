@@ -25,15 +25,22 @@ export async function updateTimeById(id, newTimestamp) {
 }
 
 export async function getTimesFromTo(from, to) {
+  let result;
   if (from && to) {
-    const result = await pool.query('SELECT * FROM times WHERE saved_at BETWEEN $1 AND $2', [from, to]);
+    result = await pool.query('SELECT * FROM times WHERE saved_at BETWEEN $1 AND $2', [from, to]);
   } else if (from) {
-    const result = await pool.query('SELECT * FROM times WHERE saved_at >= $1', [from]);
+    result = await pool.query('SELECT * FROM times WHERE saved_at >= $1', [from]);
   } else if (to) {
-    const result = await pool.query('SELECT * FROM times WHERE saved_at <= $1', [to]);
+    result = await pool.query('SELECT * FROM times WHERE saved_at <= $1', [to]);
   } else {
-    const result = await getAllTimes();
+    return await getAllTimes();
   }
-  //переписать с учетом того, что один из параметров может отсутствовать
   return result.rows;
+}
+
+export function checkDateTime(dateTime) {
+  const date = new Date(dateTime);
+  if (!Number.isNaN(date.getTime()) && date.toISOString() === dateTime)
+    return true;
+  else return false;
 }
