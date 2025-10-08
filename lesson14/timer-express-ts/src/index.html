@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Таймер</title>
+    <style>
+      body {
+        font-family: sans-serif;
+        max-width: 600px;
+        margin: 2rem auto;
+      }
+      button,
+      input {
+        margin-right: 0.5rem;
+      }
+      ul {
+        list-style: none;
+        padding: 0;
+      }
+      li {
+        margin-bottom: 0.5rem;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>⏱ Таймер</h1>
+    <div>
+      <button id="save">Сохранить текущее время</button>
+      <button id="refresh">Обновить список</button>
+    </div>
+    <div style="margin-top: 1rem">
+      <input type="text" id="input-id" placeholder="ID" />
+      <input
+        type="text"
+        id="input-date"
+        placeholder="YYYY-MM-DDTHH:MM:SS.sssZ"
+      />
+      <button id="update">Обновить время</button>
+    </div>
+    <div style="margin-top: 1rem">
+      <input type="text" id="filter-from" placeholder="From (ISO)" />
+      <input type="text" id="filter-to" placeholder="To (ISO)" />
+    </div>
+    <ul id="list"></ul>
+
+    <script>
+      const API_URL = 'http://localhost:3000';
+
+      const list = document.getElementById('list');
+      const saveBtn = document.getElementById('save');
+      const refreshBtn = document.getElementById('refresh');
+      const updateBtn = document.getElementById('update');
+      const inputId = document.getElementById('input-id');
+      const inputDate = document.getElementById('input-date');
+      const filterFrom = document.getElementById('filter-from');
+      const filterTo = document.getElementById('filter-to');
+
+      async function loadTimes() {
+        // строим URL с опциональными query-параметрами from/to
+        let url = new URL('/timer', API_URL);
+        if (filterFrom.value.trim())
+          url.searchParams.set('from', filterFrom.value.trim());
+        if (filterTo.value.trim())
+          url.searchParams.set('to', filterTo.value.trim());
+
+        const res = await fetch(url);
+        const data = await res.json();
+        list.innerHTML = '';
+        data.forEach((item) => {
+          const li = document.createElement('li');
+          li.innerHTML = `
+                ${item.id}: ${item.saved_at}
+                <button data-id="${item.id}">удалить</button>
+            `;
+          list.appendChild(li);
+        });
+      }
+
+      async function saveTime() {
+        await fetch(`${API_URL}/timer/save`, { method: 'POST' });
+      }
+
+      async function deleteTime(id) {
+        await fetch(`${API_URL}/timer/${id}`, { method: 'DELETE' });
+        loadTimes();
+      }
+
+      async function updateTime() {
+        const id = inputId.value.trim();
+        const savedAt = encodeURIComponent(inputDate.value.trim());
+        await fetch(`${API_URL}/timer/${id}?saved_at=${savedAt}`, {
+          method: 'PUT',
+        });
+      }
+
+      list.addEventListener('click', (e) => {
+        if (e.target.tagName === 'BUTTON' && e.target.dataset.id) {
+          deleteTime(e.target.dataset.id);
+        }
+      });
+
+      saveBtn.addEventListener('click', saveTime);
+      refreshBtn.addEventListener('click', loadTimes);
+      updateBtn.addEventListener('click', updateTime);
+
+      loadTimes();
+    </script>
+  </body>
+</html>
