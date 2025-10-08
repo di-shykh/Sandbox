@@ -1,6 +1,8 @@
 import express from 'express';
 import type { Request, Response } from 'express';
 import cors from 'cors';
+import path from 'path';
+
 import {
   getAllTimes,
   saveCurrentTime,
@@ -14,9 +16,13 @@ const port: number = Number(process.env.PORT) || 3000;
 
 // мидлвары
 app.use(express.json()); // парсим JSON-тело
-
-// Разрешить для все делать запросы с любых доменов (подходит для локалки)
 app.use(cors());
+
+app.use(express.static(path.join(__dirname, 'public'))); // Обслуживаем статические файлы из папки public
+
+app.get('/', (_req: Request, res: Response): void => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
 
 // GET /timer  (+ опционально ?from=&to=)
 app.get('/timer', async (req: Request, res: Response): Promise<void> => {
