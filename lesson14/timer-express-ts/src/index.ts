@@ -17,7 +17,6 @@ const port: number = Number(process.env.PORT) || 3000;
 // мидлвары
 app.use(express.json()); // парсим JSON-тело
 app.use(cors());
-
 app.use(express.static(path.join(__dirname, 'public'))); // Обслуживаем статические файлы из папки public
 
 app.get('/', (_req: Request, res: Response): void => {
@@ -38,14 +37,14 @@ app.get('/timer', async (req: Request, res: Response): Promise<void> => {
 
 // POST /timer/save
 app.post('/timer/save', async (_req: Request, res: Response): Promise<void> => {
-  const row = await saveCurrentTime();
+  const row: TimeRowDb = await saveCurrentTime();
   res.status(201).json(row);
 });
 
 // TODO: DELETE /timer/:id  — реализуй сам
 app.delete('/timer/:id', async (req: Request, res: Response): Promise<void> => {
   const id: number = parseInt(req.params.id as string);
-  if (isNaN(id)) {
+  if (isNaN(id) || id < 0) {
     res.status(400).json({ error: 'Invalid timer ID' });
     return;
   }
@@ -75,11 +74,11 @@ app.put('/timer/:id', async (req: Request, res: Response): Promise<void> => {
     return;
   }
   try {
-    const newTime = await updateTimeById(id, savedAt);
+    const newTime: TimeRowDb = await updateTimeById(id, savedAt);
     res.status(200).json(newTime);
   } catch (error) {
     res.status(400).json({ error: (error as Error).message });
   }
 });
 
-app.listen(port, () => console.log(`✅ http://localhost:${port}`));
+app.listen(port, (): void => console.log(`✅ http://localhost:${port}`));
