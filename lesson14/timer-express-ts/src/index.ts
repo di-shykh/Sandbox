@@ -12,25 +12,15 @@ import {
 import type { TimeRowDb } from './repositories/timer.repository';
 
 const app = express();
-const port: number = Number(process.env.PORT) || 3000;
+const port: number = Number(process.env.PORT) || 3000; ;
 
 // мидлвары
-app.use(express.json()); // парсим JSON-тело
-app.use(cors());
-// Базовая CSP политика чтобы избежать ошибок
-app.use((_req: Request, res: Response, next: NextFunction): void => {
-  res.setHeader(
-      'Content-Security-Policy',
-      "default-src 'self'; connect-src 'self' http://localhost:3000; style-src 'self' 'unsafe-inline'"
-  );
-  next();
-});
-app.use(express.static(path.join(__dirname, 'public'))); // Обслуживаем статические файлы из папки public
+ app.use(express.json()); // парсим JSON-тело
+ app.use(cors());
 
-app.get('/', (_req: Request, res: Response): void => {
+app.get('/', (_req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
-
 // GET /timer  (+ опционально ?from=&to=)
 app.get('/timer', async (req: Request, res: Response): Promise<void> => {
   //опционально
