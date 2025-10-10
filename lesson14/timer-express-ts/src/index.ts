@@ -1,4 +1,4 @@
-import express from 'express';
+import express, {NextFunction} from 'express';
 import type { Request, Response } from 'express';
 import cors from 'cors';
 import path from 'path';
@@ -17,6 +17,14 @@ const port: number = Number(process.env.PORT) || 3000;
 // мидлвары
 app.use(express.json()); // парсим JSON-тело
 app.use(cors());
+// Базовая CSP политика чтобы избежать ошибок
+app.use((_req: Request, res: Response, next: NextFunction): void => {
+  res.setHeader(
+      'Content-Security-Policy',
+      "default-src 'self'; connect-src 'self' http://localhost:3000; style-src 'self' 'unsafe-inline'"
+  );
+  next();
+});
 app.use(express.static(path.join(__dirname, 'public'))); // Обслуживаем статические файлы из папки public
 
 app.get('/', (_req: Request, res: Response): void => {
