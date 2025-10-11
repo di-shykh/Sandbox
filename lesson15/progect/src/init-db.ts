@@ -16,4 +16,18 @@ async function init() {
   console.log('✅ Таблица projects готова');
   await pool.end();
 }
+//Создаем таблицу с задачами для проектов
+async function createTableTasks() {
+  await pool.query(`
+        CREATE TABLE tasks(
+          id SERIAL PRIMARY KEY NOT NULL,
+          project_id INTEGER NOT NULL,
+          title TEXT NOT NULL,
+          is_done BOOLEN NOT NULL DEFAULT false,
+          created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+          FOREIGN KEY (user_id) REFERENCES projects(id)
+        );
+    `);
+}
 init();
+createTableTasks();
