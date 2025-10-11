@@ -42,28 +42,53 @@ export type UpdateProjectInput = {
  */
 export type ProjectFilter = {
   name?: string;
+  status?: string; //фильтр по статусу (точное сравнение строки)
 };
 
-/** Список: весь или отфильтрованный по подстроке name (ILIKE). */
+/*Фильтр по статусу (точное сравнение строки)*/
+// export type ProjectFilterByStatus = {
+//   status?: string;
+// };
+
+/** Список: весь или отфильтрованный по подстроке name (ILIKE). */ // добавила фильтр по статусу
 export async function listProjects(
   filter: ProjectFilter = {}
 ): Promise<ProjectRowDb[]> {
-  const { name } = filter;
+  const { name, status } = filter;
 
-  if (!name) {
+  if (!name && !status) {
     const { rows } = await pool.query<ProjectRowDb>(
       `SELECT * FROM projects ORDER BY id DESC`
     );
     return rows;
   }
-
-  const { rows } = await pool.query<ProjectRowDb>(
-    `SELECT * FROM projects
+  if (name && !status) {
+    const { rows } = await pool.query<ProjectRowDb>(
+      `SELECT * FROM projects
        WHERE name ILIKE $1
      ORDER BY id DESC`,
-    [`%${name}%`]
-  );
-  return rows;
+      [`%${name}%`]
+    );
+    return rows;
+  }
+  if (status && !name) {
+    const { rows } = await pool.query<ProjectRowDb>(
+      `SELECT * FROM projects
+       WHERE status = $1
+     ORDER BY id DESC`,
+      [status]
+    );
+    return rows;
+  }
+  if (status && name) {
+    const { rows } = await pool.query<ProjectRowDb>(
+      `SELECT * FROM projects
+       WHERE status = $2 AND name ILIKE $1
+     ORDER BY id DESC`,
+      [`%${name}%`, status]
+    );
+    return rows;
+  }
 }
 
 /**
