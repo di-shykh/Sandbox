@@ -21,6 +21,7 @@ const HTTP = {
   NO_CONTENT: 204,
   BAD_REQUEST: 400,
   NOT_FOUND: 404,
+  SERVER_ERROR: 500,
 } as const;
 
 app.use(express.json());
@@ -31,11 +32,23 @@ app.get('/', (_req: Request, res: Response) => {
   res.status(HTTP.OK).json({ message: 'Projects API is up' });
 });
 
-// GET /projects?name=...
+// GET /projects?name=...&status=...
 app.get('/projects', async (req: Request, res: Response) => {
-  const { name } = req.query as ProjectFilter;
-  const rows = await listProjects({ name });
-  res.status(HTTP.OK).json(rows);
+  try {
+    const { name, status } = req.query as ProjectFilter;
+    // if (!name) {
+    //   res.status(HTTP.BAD_REQUEST).json({ error: 'name is required!' });
+    //   return;
+    // }
+    const filter: ProjectFilter = {};
+    if (name !== undefined) filter.name = name;
+    if (status !== undefined) filter.status = status;
+    const rows = await listProjects(filter);
+    res.status(HTTP.OK).json(rows);
+  } catch (error) {
+    console.error('Error fetching projects:', error);
+    res.status(HTTP.SERVER_ERROR).json({ error: 'Internal server error' });
+  }
 });
 
 // GET /projects/:id
@@ -63,19 +76,33 @@ app.get('/projects/:id', async (req: Request, res: Response) => {
 
 // POST /projects   { name, description?, status? }
 app.post('/projects', async (req: Request, res: Response) => {
-  const { name, description, status } = req.body as NewProjectInput;
+  try {
+    const { name, description, status } = req.body as NewProjectInput;
 
-  if (!name) {
-    res.status(HTTP.BAD_REQUEST).json({ error: 'Name is required' });
-    return;
+    if (!name) {
+      res.status(HTTP.BAD_REQUEST).json({ error: 'Name is required' });
+      return;
+    }
+    const newProject: NewProjectInput = {
+      name: name,
+    };
+    if (description !== undefined) newProject.description = description;
+    if (
+      status !== undefined &&
+      (status === 'todo' || status === 'done' || status === 'in_progress')
+    )
+      newProject.status = status;
+    const created = await createProject(newProject);
+
+    if (!created) {
+      res.status(HTTP.SERVER_ERROR).json({ error: 'Failed to create project' });
+      return;
+    }
+    res.status(HTTP.CREATED).json(created);
+  } catch (error) {
+    console.error('Error creating project:', error);
+    res.status(HTTP.SERVER_ERROR).json({ error: 'Internal server error' });
   }
-
-  const created = await createProject({
-    name,
-    description,
-    status,
-  });
-  res.status(HTTP.CREATED).json(created);
 });
 
 // PUT /projects/:id   { name, description?, status? }
@@ -123,5 +150,24 @@ app.delete('/projects/:id', async (req: Request, res: Response) => {
   }
   res.sendStatus(HTTP.NO_CONTENT);
 });
+/**_________________________________________________________________ */
+/** Tasks */
+//GET /projects/:projectId/tasks  — получить список задач проекта
+app.get('projects/:projectId/tasks', async (req: Request, res: Response) => {});
+
+// POST /projects/:projectId/tasks — создать задачу. Body: { "title": ... }
+app.post(
+  'projects/:projectId/tasks',
+  async (req: Request, res: Response) => {}
+);
+
+//PUT /tasks/:id — полная замена задачи. Body: { "title": ..., "is_done": ... }
+app.put('PUT /tasks/:id', async (req: Request, res: Response) => {});
+
+//DELETE /tasks/:id — удалить задачу
+app.delete('tasks/:id', async (req: Request, res: Response) => {});
+
+/** Эндпоинт GET /projects/:id/with-tasks*/
+app.get('projects/:id/with-tasks', async (req: Request, res: Response) => {});
 
 app.listen(port, () => console.log(`✅ http://localhost:${port}`));

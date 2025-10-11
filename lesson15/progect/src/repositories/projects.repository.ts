@@ -80,15 +80,14 @@ export async function listProjects(
     );
     return rows;
   }
-  if (status && name) {
-    const { rows } = await pool.query<ProjectRowDb>(
-      `SELECT * FROM projects
+
+  const { rows } = await pool.query<ProjectRowDb>(
+    `SELECT * FROM projects
        WHERE status = $2 AND name ILIKE $1
      ORDER BY id DESC`,
-      [`%${name}%`, status]
-    );
-    return rows;
-  }
+    [`%${name}%`, status]
+  );
+  return rows;
 }
 
 /**
@@ -100,14 +99,14 @@ export async function listProjects(
  */
 export async function createProject(
   data: NewProjectInput
-): Promise<ProjectRowDb> {
+): Promise<ProjectRowDb | null> {
   const { rows } = await pool.query<ProjectRowDb>(
     `INSERT INTO projects (name, description, status)
      VALUES ($1, COALESCE($2, ''), COALESCE($3, 'todo'))
      RETURNING id, name, description, status, created_at`,
     [data.name, data.description ?? null, data.status ?? null]
   );
-  return rows[0];
+  return rows[0] ?? null;
 }
 
 /** Получить один проект по id. Если нет — вернём null. */
