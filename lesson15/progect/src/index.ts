@@ -19,6 +19,7 @@ import {
   UpdateTaskInput,
   FilterTasksByProject,
   updateTask,
+  deleteTask,
 } from './repositories/tasks.repository';
 import {} from './repositories/tasks.repository';
 import { error } from 'console';
@@ -246,7 +247,7 @@ app.delete('tasks/:id', async (req: Request, res: Response) => {
     res.status(HTTP.BAD_REQUEST).json({ error: 'Invalid task ID' });
     return;
   }
-  const ok = await deleteProject(id);
+  const ok = await deleteTask(id);
   if (!ok) {
     res.sendStatus(HTTP.NOT_FOUND);
     return;
