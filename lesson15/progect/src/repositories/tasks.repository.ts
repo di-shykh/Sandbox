@@ -8,6 +8,7 @@
 //         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
 //         FOREIGN KEY (user_id) REFERENCES projects(id)
 //       );
+import { pool } from '../db';
 
 export type TaskRowDb = {
   id: number;
@@ -28,24 +29,72 @@ export type NewTaskInput = {
 
 export type UpdateTaskInput = {
   /*допиши сам*/
+  id: number;
   project_id: number;
   title: string;
   is_done: boolean;
   created_at: Date;
 };
+/**Тип для отображения задач для проекта ???? Возможно не нужен*/
+export type FilterTasksByProject = {
+  id: number;
+  title: string;
+  is_done: boolean;
+  created_at: Date;
+};
 
-// export type NewProjectInput = {
-//   name: string;
-//   description?: string;
-//   status?: 'todo' | 'in_progress' | 'done';
-// };
+/**Получение задач по проекту */
+export async function listTasksFromProject(
+  project_id: number
+): Promise<TaskRowDb[]> {
+  try {
+    const { rows } = await pool.query<TaskRowDb>(
+      `SELECT * FROM tasks
+        WHERE project_id = $1
+        ORDER BY created_at`,
+      [project_id]
+    );
+    return rows;
+  } catch (error) {
+    throw new Error(`Failed to get tasks: ${(error as Error).message}`);
+  }
+}
 
-// /**
-//  * Тело запроса при обновлении проекта через PUT.
-//  * Для «настоящего PUT» ожидаем ПОЛНУЮ замену ресурса — все поля обязательны.
-//  */
-// export type UpdateProjectInput = {
-//   name: string;
-//   description: string;
-//   status: 'todo' | 'in_progress' | 'done';
-// };
+// export async function listProjects(
+//   filter: ProjectFilter = {}
+// ): Promise<ProjectRowDb[]> {
+//   const { name, status } = filter;
+
+//   if (!name && !status) {
+//     const { rows } = await pool.query<ProjectRowDb>(
+//       `SELECT * FROM projects ORDER BY id DESC`
+//     );
+//     return rows;
+//   }
+//   if (name && !status) {
+//     const { rows } = await pool.query<ProjectRowDb>(
+//       `SELECT * FROM projects
+//        WHERE name ILIKE $1
+//      ORDER BY id DESC`,
+//       [`%${name}%`]
+//     );
+//     return rows;
+//   }
+//   if (status && !name) {
+//     const { rows } = await pool.query<ProjectRowDb>(
+//       `SELECT * FROM projects
+//        WHERE status = $1
+//      ORDER BY id DESC`,
+//       [status]
+//     );
+//     return rows;
+//   }
+
+//   const { rows } = await pool.query<ProjectRowDb>(
+//     `SELECT * FROM projects
+//        WHERE status = $2 AND name ILIKE $1
+//      ORDER BY id DESC`,
+//     [`%${name}%`, status]
+//   );
+//   return rows;
+// }

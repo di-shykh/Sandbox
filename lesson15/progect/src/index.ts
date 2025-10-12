@@ -11,6 +11,8 @@ import {
   NewProjectInput,
   UpdateProjectInput,
 } from './repositories/projects.repository';
+import { listTasksFromProject } from './repositories/tasks.repository';
+import { error } from 'console';
 
 const app = express();
 const port = Number(process.env.PORT) || 3000;
@@ -153,7 +155,25 @@ app.delete('/projects/:id', async (req: Request, res: Response) => {
 /**_________________________________________________________________ */
 /** Tasks */
 //GET /projects/:projectId/tasks  — получить список задач проекта
-app.get('projects/:projectId/tasks', async (req: Request, res: Response) => {});
+app.get('projects/:projectId/tasks', async (req: Request, res: Response) => {
+  try {
+    const project_id = Number(req.params.projectId);
+    if (!Number.isFinite(project_id) || project_id <= 0) {
+      res.status(HTTP.BAD_REQUEST).json({ error: 'Invalid id' });
+      return;
+    }
+    const rows = await listTasksFromProject(project_id);
+    if (rows.length === 0) {
+      res
+        .status(HTTP.BAD_REQUEST)
+        .json({ error: 'No tasks for this projectId' });
+      return;
+    }
+    res.status(HTTP.OK).json(rows);
+  } catch (error) {
+    res.status(HTTP.SERVER_ERROR).json({ error: 'Server error' });
+  }
+});
 
 // POST /projects/:projectId/tasks — создать задачу. Body: { "title": ... }
 app.post(
