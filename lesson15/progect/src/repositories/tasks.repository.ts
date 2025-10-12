@@ -24,16 +24,12 @@ export type NewTaskInput = {
   project_id: number;
   title: string;
   is_done?: boolean;
-  created_at?: Date;
 };
 
 export type UpdateTaskInput = {
   /*допиши сам*/
-  id: number;
-  project_id: number;
   title: string;
   is_done: boolean;
-  created_at: Date;
 };
 /**Тип для отображения задач для проекта ???? Возможно не нужен*/
 export type FilterTasksByProject = {
@@ -59,42 +55,53 @@ export async function listTasksFromProject(
     throw new Error(`Failed to get tasks: ${(error as Error).message}`);
   }
 }
+/** Создать задачу*/
+export async function createTask(
+  task: NewTaskInput
+): Promise<TaskRowDb | null> {
+  const { rows } = await pool.query<TaskRowDb>(
+    `INSERT INTO tasks (project_id, title, is_done)
+     VALUES ($1, $2, COALESCE($3, false))
+     RETURNIG *`,
+    [task.project_id, task.title, task.is_done ?? null]
+  );
+  return rows[0] ?? null;
+}
+/** Полная замена задачи */
+export async function updateTask(
+  id: number,
+  task: UpdateTaskInput
+): Promise<TaskRowDb | null> {
+  const { rows } = await pool.query<TaskRowDb>(
+    `UPDATE tasks
+      SET title = $2,
+          is_done = $3,
+          created_at = NOW()
+      WHERE id = $1
+      RETURNING *`,
+    [id, task.title, task.is_done]
+  );
+  return rows[0] ?? null;
+}
+/** Удалить задачу*/
+export async function deleteTask(id: number): Promise<boolean> {
+  const result = await pool.query(`DELETE FROM tasks WHERE id=$1`, [id]);
+  return result.rowCount === 1;
+}
+//         id SERIAL PRIMARY KEY NOT NULL,
+//         project_id INTEGER NOT NULL,
+//         title TEXT NOT NULL,
+//         is_done BOOLEN NOT NULL DEFAULT false,
+//         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
 
-// export async function listProjects(
-//   filter: ProjectFilter = {}
-// ): Promise<ProjectRowDb[]> {
-//   const { name, status } = filter;
-
-//   if (!name && !status) {
-//     const { rows } = await pool.query<ProjectRowDb>(
-//       `SELECT * FROM projects ORDER BY id DESC`
-//     );
-//     return rows;
-//   }
-//   if (name && !status) {
-//     const { rows } = await pool.query<ProjectRowDb>(
-//       `SELECT * FROM projects
-//        WHERE name ILIKE $1
-//      ORDER BY id DESC`,
-//       [`%${name}%`]
-//     );
-//     return rows;
-//   }
-//   if (status && !name) {
-//     const { rows } = await pool.query<ProjectRowDb>(
-//       `SELECT * FROM projects
-//        WHERE status = $1
-//      ORDER BY id DESC`,
-//       [status]
-//     );
-//     return rows;
-//   }
-
+// export async function createProject(
+//   data: NewProjectInput
+// ): Promise<ProjectRowDb | null> {
 //   const { rows } = await pool.query<ProjectRowDb>(
-//     `SELECT * FROM projects
-//        WHERE status = $2 AND name ILIKE $1
-//      ORDER BY id DESC`,
-//     [`%${name}%`, status]
+//     `INSERT INTO projects (name, description, status)
+//      VALUES ($1, COALESCE($2, ''), COALESCE($3, 'todo'))
+//      RETURNING id, name, description, status, created_at`,
+//     [data.name, data.description ?? null, data.status ?? null]
 //   );
-//   return rows;
+//   return rows[0] ?? null;
 // }

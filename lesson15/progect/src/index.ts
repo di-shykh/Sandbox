@@ -11,7 +11,16 @@ import {
   NewProjectInput,
   UpdateProjectInput,
 } from './repositories/projects.repository';
-import { listTasksFromProject } from './repositories/tasks.repository';
+import {
+  listTasksFromProject,
+  createTask,
+  TaskRowDb,
+  NewTaskInput,
+  UpdateTaskInput,
+  FilterTasksByProject,
+  updateTask,
+} from './repositories/tasks.repository';
+import {} from './repositories/tasks.repository';
 import { error } from 'console';
 
 const app = express();
@@ -159,7 +168,7 @@ app.get('projects/:projectId/tasks', async (req: Request, res: Response) => {
   try {
     const project_id = Number(req.params.projectId);
     if (!Number.isFinite(project_id) || project_id <= 0) {
-      res.status(HTTP.BAD_REQUEST).json({ error: 'Invalid id' });
+      res.status(HTTP.BAD_REQUEST).json({ error: 'Invalid projectId' });
       return;
     }
     const rows = await listTasksFromProject(project_id);
@@ -176,18 +185,84 @@ app.get('projects/:projectId/tasks', async (req: Request, res: Response) => {
 });
 
 // POST /projects/:projectId/tasks — создать задачу. Body: { "title": ... }
-app.post(
-  'projects/:projectId/tasks',
-  async (req: Request, res: Response) => {}
-);
+app.post('projects/:projectId/tasks', async (req: Request, res: Response) => {
+  try {
+    const projectId = Number(req.params.projectId);
+    if (!Number.isFinite(projectId) || projectId <= 0) {
+      res.status(HTTP.BAD_REQUEST).json({ error: 'Invalid projectId' });
+      return;
+    }
+    if (!req.body.title) {
+      res.status(HTTP.BAD_REQUEST).json({ error: 'Title is requered!' });
+      return;
+    }
+    const task: NewTaskInput = {
+      project_id: projectId,
+      title: req.body.title,
+      is_done: req.body.is_done ?? false,
+    };
+    const created = await createTask(task);
+
+    if (!created) {
+      res.status(HTTP.SERVER_ERROR).json({ error: 'Failed to create task' });
+      return;
+    }
+    res.status(HTTP.CREATED).json(created);
+  } catch (error) {
+    console.error('Error creating task:', error);
+    res.status(HTTP.SERVER_ERROR).json({ error: 'Internal server error' });
+  }
+});
 
 //PUT /tasks/:id — полная замена задачи. Body: { "title": ..., "is_done": ... }
-app.put('PUT /tasks/:id', async (req: Request, res: Response) => {});
+app.put('PUT /tasks/:id', async (req: Request, res: Response) => {
+  const id = Number(req.params.id);
+  if (!Number.isFinite(id) || id <= 0) {
+    res.status(HTTP.BAD_REQUEST).json({ error: 'Invalid task ID' });
+    return;
+  }
+  const { title, is_done } = req.body as UpdateTaskInput;
+  if (!title || !is_done) {
+    res
+      .status(HTTP.BAD_REQUEST)
+      .json({ error: 'title, is_done are requered!' });
+    return;
+  }
+  const updated = await updateTask(id, {
+    title,
+    is_done,
+  });
+  if (!updated) {
+    res.sendStatus(HTTP.NOT_FOUND);
+    return;
+  }
+  res.status(HTTP.OK).json(updated);
+});
 
 //DELETE /tasks/:id — удалить задачу
-app.delete('tasks/:id', async (req: Request, res: Response) => {});
+app.delete('tasks/:id', async (req: Request, res: Response) => {
+  const id = Number(req.params.id);
+  if (!Number.isFinite(id) || id <= 0) {
+    res.status(HTTP.BAD_REQUEST).json({ error: 'Invalid task ID' });
+    return;
+  }
+  const ok = await deleteProject(id);
+  if (!ok) {
+    res.sendStatus(HTTP.NOT_FOUND);
+    return;
+  }
+  res.sendStatus(HTTP.NO_CONTENT);
+});
 
 /** Эндпоинт GET /projects/:id/with-tasks*/
 app.get('projects/:id/with-tasks', async (req: Request, res: Response) => {});
 
 app.listen(port, () => console.log(`✅ http://localhost:${port}`));
+
+/**Вспомогательные функции */
+// function idValidation(id: number): void {
+//   if (!Number.isFinite(id) || id <= 0) {
+//       res.status(HTTP.BAD_REQUEST).json({ error: 'Invalid id' });
+//       return;
+//     }
+// }
