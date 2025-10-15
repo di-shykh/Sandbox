@@ -17,11 +17,13 @@ import {
   TaskRowDb,
   NewTaskInput,
   UpdateTaskInput,
-  FilterTasksByProject,
   updateTask,
   deleteTask,
 } from './repositories/tasks.repository';
-import {} from './repositories/tasks.repository';
+import {
+  getProjectWithTasksJoin,
+  ProjectWithTasks,
+} from './repositories/project-with-tasks.repository';
 import { error } from 'console';
 
 const app = express();
@@ -256,7 +258,23 @@ app.delete('tasks/:id', async (req: Request, res: Response) => {
 });
 
 /** Эндпоинт GET /projects/:id/with-tasks*/
-app.get('projects/:id/with-tasks', async (req: Request, res: Response) => {});
+app.get('projects/:id/with-tasks', async (req: Request, res: Response) => {
+  try {
+    const id = Number(req.params.id);
+    if (!Number.isFinite(id) || id <= 0) {
+      res.status(HTTP.BAD_REQUEST).json({ error: 'Invalid project ID' });
+      return;
+    }
+    const row = await getProjectWithTasksJoin(id);
+    if (!row) {
+      res.sendStatus(HTTP.NOT_FOUND);
+      return;
+    }
+    res.status(HTTP.OK).json(row);
+  } catch (error) {
+    res.status(HTTP.SERVER_ERROR).json({ error: 'Server error' });
+  }
+});
 
 app.listen(port, () => console.log(`✅ http://localhost:${port}`));
 

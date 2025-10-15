@@ -31,17 +31,7 @@ export type UpdateTaskInput = {
   title: string;
   is_done: boolean;
 };
-/**Тип для отображения задач для проекта ???? Возможно не нужен*/
-export type FilterTasksByProject = {
-  id: number;
-  title: string;
-  is_done: boolean;
-  created_at: Date;
-};
-export type ProjectWithTasks = {
-  project: ProjectRowDb;
-  tasks: TaskRowDb[];
-};
+
 /**Получение задач по проекту */
 export async function listTasksFromProject(
   project_id: number
