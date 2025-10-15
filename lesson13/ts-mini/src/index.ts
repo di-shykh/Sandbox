@@ -109,3 +109,7 @@ function isOk(r: Result): boolean {
   if (r === 'ok') return true;
   return false;
 }
+
+async function sum(a: number, b: number): Promise<string> {
+  return (a + b).toString();
+}

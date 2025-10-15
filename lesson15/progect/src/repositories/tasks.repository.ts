@@ -9,7 +9,7 @@
 //         FOREIGN KEY (user_id) REFERENCES projects(id)
 //       );
 import { pool } from '../db';
-
+import { ProjectRowDb } from './projects.repository';
 export type TaskRowDb = {
   id: number;
   project_id: number;
@@ -38,7 +38,10 @@ export type FilterTasksByProject = {
   is_done: boolean;
   created_at: Date;
 };
-
+export type ProjectWithTasks = {
+  project: ProjectRowDb;
+  tasks: TaskRowDb[];
+};
 /**Получение задач по проекту */
 export async function listTasksFromProject(
   project_id: number
