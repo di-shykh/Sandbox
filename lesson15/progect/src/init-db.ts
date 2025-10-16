@@ -34,8 +34,8 @@ async function createTableTasks() {
 async function main() {
   await init();
   await createTableTasks();
-  console.log('✅ Все таблицы созданы');
   await pool.end();
+  console.log('✅ Все таблицы созданы');
 }
 
 main();
