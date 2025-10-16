@@ -14,7 +14,7 @@ async function init() {
     );
   `);
   console.log('✅ Таблица projects готова');
-  await pool.end();
+  // await pool.end();
 }
 //Создаем таблицу с задачами для проектов
 async function createTableTasks() {
