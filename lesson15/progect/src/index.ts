@@ -154,7 +154,7 @@ app.delete('/projects/:id', async (req: Request, res: Response) => {
 /**_________________________________________________________________ */
 /** Tasks */
 //GET /projects/:projectId/tasks  — получить список задач проекта
-app.get('projects/:projectId/tasks', async (req: Request, res: Response) => {
+app.get('/projects/:projectId/tasks', async (req: Request, res: Response) => {
   try {
     const projectId = Number(req.params.projectId);
     idValidation(projectId, res, 'Invalid project ID');
@@ -172,7 +172,7 @@ app.get('projects/:projectId/tasks', async (req: Request, res: Response) => {
 });
 
 // POST /projects/:projectId/tasks — создать задачу. Body: { "title": ... }
-app.post('projects/:projectId/tasks', async (req: Request, res: Response) => {
+app.post('/projects/:projectId/tasks', async (req: Request, res: Response) => {
   try {
     const projectId = Number(req.params.projectId);
     idValidation(projectId, res, 'Invalid project ID');
@@ -199,11 +199,11 @@ app.post('projects/:projectId/tasks', async (req: Request, res: Response) => {
 });
 
 //PUT /tasks/:id — полная замена задачи. Body: { "title": ..., "is_done": ... }
-app.put('PUT /tasks/:id', async (req: Request, res: Response) => {
+app.put('/tasks/:id', async (req: Request, res: Response) => {
   const id = Number(req.params.id);
   idValidation(id, res, 'Invalid task ID');
   const { title, is_done } = req.body as UpdateTaskInput;
-  if (!title || !is_done) {
+  if (!title || is_done === undefined) {
     res
       .status(HTTP.BAD_REQUEST)
       .json({ error: 'title, is_done are requered!' });
@@ -221,7 +221,7 @@ app.put('PUT /tasks/:id', async (req: Request, res: Response) => {
 });
 
 //DELETE /tasks/:id — удалить задачу
-app.delete('tasks/:id', async (req: Request, res: Response) => {
+app.delete('/tasks/:id', async (req: Request, res: Response) => {
   const id = Number(req.params.id);
   idValidation(id, res, 'Invalid task ID');
   const ok = await deleteTask(id);
@@ -233,7 +233,7 @@ app.delete('tasks/:id', async (req: Request, res: Response) => {
 });
 
 /** Эндпоинт GET /projects/:id/with-tasks*/
-app.get('projects/:id/with-tasks', async (req: Request, res: Response) => {
+app.get('/projects/:id/with-tasks', async (req: Request, res: Response) => {
   try {
     const id = Number(req.params.id);
     idValidation(id, res, 'Invalid project ID');

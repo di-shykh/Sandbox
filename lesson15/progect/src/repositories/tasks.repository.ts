@@ -55,7 +55,7 @@ export async function createTask(
   const { rows } = await pool.query<TaskRowDb>(
     `INSERT INTO tasks (project_id, title, is_done)
      VALUES ($1, $2, COALESCE($3, false))
-     RETURNIG *`,
+     RETURNING *`,
     [task.project_id, task.title, task.is_done ?? null]
   );
   return rows[0] ?? null;
