@@ -1,5 +1,4 @@
 import { pool } from '../db';
-import { ProjectRowDb } from './projects.repository';
 /**Типы для задач(tasks) */
 /** Строка из таблицы `tasks` в том виде, как её возвращает драйвер `pg` по умолчанию */
 export type TaskRowDb = {
@@ -73,20 +72,3 @@ export async function deleteTask(id: number): Promise<boolean> {
   const result = await pool.query(`DELETE FROM tasks WHERE id=$1`, [id]);
   return result.rowCount === 1;
 }
-//         id SERIAL PRIMARY KEY NOT NULL,
-//         project_id INTEGER NOT NULL,
-//         title TEXT NOT NULL,
-//         is_done BOOLEN NOT NULL DEFAULT false,
-//         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-
-// export async function createProject(
-//   data: NewProjectInput
-// ): Promise<ProjectRowDb | null> {
-//   const { rows } = await pool.query<ProjectRowDb>(
-//     `INSERT INTO projects (name, description, status)
-//      VALUES ($1, COALESCE($2, ''), COALESCE($3, 'todo'))
-//      RETURNING id, name, description, status, created_at`,
-//     [data.name, data.description ?? null, data.status ?? null]
-//   );
-//   return rows[0] ?? null;
-// }
