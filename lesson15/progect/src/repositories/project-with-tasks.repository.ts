@@ -27,8 +27,9 @@ type JoinResult = {
 export async function getProjectWithTasksJoin(
   projectId: number
 ): Promise<ProjectWithTasks | null> {
-  const { rows } = await pool.query<JoinResult>(
-    `     SELECT
+  try {
+    const { rows } = await pool.query<JoinResult>(
+      `     SELECT
            p.*,
            t.id          AS t_id,
            t.project_id  AS t_project_id,
@@ -39,27 +40,32 @@ export async function getProjectWithTasksJoin(
          LEFT JOIN tasks t ON t.project_id = p.id
          WHERE p.id = $1
          ORDER BY t.id DESC`,
-    [projectId]
-  );
-  if (rows.length === 0 || rows[0] === undefined) return null;
-  const project: ProjectRowDb = {
-    id: rows[0].id,
-    name: rows[0].name,
-    description: rows[0].description,
-    status: rows[0].status,
-    created_at: rows[0].created_at,
-  };
-  const tasks: TaskRowDb[] = [];
-  for (let row of rows) {
-    if (row.t_id !== null) {
-      tasks.push({
-        id: row.t_id,
-        project_id: row.t_project_id,
-        title: row.t_title,
-        is_done: row.t_is_done,
-        created_at: row.t_created_at,
-      });
+      [projectId]
+    );
+    if (rows.length === 0 || rows[0] === undefined) return null;
+    const project: ProjectRowDb = {
+      id: rows[0].id,
+      name: rows[0].name,
+      description: rows[0].description,
+      status: rows[0].status,
+      created_at: rows[0].created_at,
+    };
+    const tasks: TaskRowDb[] = [];
+    for (let row of rows) {
+      if (row.t_id !== null) {
+        tasks.push({
+          id: row.t_id,
+          project_id: row.t_project_id,
+          title: row.t_title,
+          is_done: row.t_is_done,
+          created_at: row.t_created_at,
+        });
+      }
     }
+    return { project, tasks };
+  } catch (error) {
+    throw new Error(
+      `Failed to get tasks for project: ${(error as Error).message}`
+    );
   }
-  return { project, tasks };
 }
