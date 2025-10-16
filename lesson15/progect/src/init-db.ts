@@ -25,7 +25,7 @@ async function createTableTasks() {
           title TEXT NOT NULL,
           is_done BOOLEAN NOT NULL DEFAULT false,
           created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-          FOREIGN KEY (project_id) REFERENCES projects(id)
+          FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE
         );
     `);
   console.log('✅ Таблица tasks готова');
