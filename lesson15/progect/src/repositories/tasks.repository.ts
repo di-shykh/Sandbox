@@ -1,15 +1,7 @@
-/**Типы для задач(tasks) */
-/** Строка из таблицы `tasks` в том виде, как её возвращает драйвер `pg` по умолчанию */
-// CREATE TABLE tasks(
-//         id SERIAL PRIMARY KEY NOT NULL,
-//         project_id INTEGER NOT NULL,
-//         title TEXT NOT NULL,
-//         is_done BOOLEN NOT NULL DEFAULT false,
-//         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-//         FOREIGN KEY (user_id) REFERENCES projects(id)
-//       );
 import { pool } from '../db';
 import { ProjectRowDb } from './projects.repository';
+/**Типы для задач(tasks) */
+/** Строка из таблицы `tasks` в том виде, как её возвращает драйвер `pg` по умолчанию */
 export type TaskRowDb = {
   id: number;
   project_id: number;
