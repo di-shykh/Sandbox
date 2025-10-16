@@ -19,7 +19,7 @@ async function init() {
 //Создаем таблицу с задачами для проектов
 async function createTableTasks() {
   await pool.query(`
-        CREATE TABLE tasks(
+        CREATE TABLE IF NOT EXISTS tasks(
           id SERIAL PRIMARY KEY NOT NULL,
           project_id INTEGER NOT NULL,
           title TEXT NOT NULL,
