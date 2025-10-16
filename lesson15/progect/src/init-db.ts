@@ -23,7 +23,7 @@ async function createTableTasks() {
           id SERIAL PRIMARY KEY NOT NULL,
           project_id INTEGER NOT NULL,
           title TEXT NOT NULL,
-          is_done BOOLEN NOT NULL DEFAULT false,
+          is_done BOOLEAN NOT NULL DEFAULT false,
           created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
           FOREIGN KEY (user_id) REFERENCES projects(id)
         );
