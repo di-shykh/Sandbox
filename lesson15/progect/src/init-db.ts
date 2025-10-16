@@ -28,6 +28,8 @@ async function createTableTasks() {
           FOREIGN KEY (project_id) REFERENCES projects(id)
         );
     `);
+  console.log('✅ Таблица tasks готова');
+  await pool.end();
 }
 init();
 createTableTasks();
