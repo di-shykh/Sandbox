@@ -29,7 +29,13 @@ async function createTableTasks() {
         );
     `);
   console.log('✅ Таблица tasks готова');
+}
+
+async function main() {
+  await init();
+  await createTableTasks();
+  console.log('✅ Все таблицы созданы');
   await pool.end();
 }
-init();
-createTableTasks();
+
+main();
