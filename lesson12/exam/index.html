@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <title>Hello test</title>
+    <style>
+      body {
+        font-family: sans-serif;
+      }
+      #out {
+        white-space: pre;
+        padding: 8px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+      }
+      .ok {
+        color: #0a0;
+      }
+      .err {
+        color: #a00;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Страница</h1>
+    <button id="btn">Привет</button>
+    <pre id="out">Нажми кнопку, чтобы проверить сервер…</pre>
+    <script>
+      const out = document.getElementById('out');
+      document.getElementById('btn').addEventListener('click', async () => {
+        out.textContent = 'Запрос...';
+        out.className = '';
+        try {
+          const res = await fetch('/api/hello');
+          // Показываем понятную ошибку, если статус не 2xx
+          if (!res.ok) {
+            const text = await res.text();
+            throw new Error(`HTTP ${res.status}: ${text}`);
+          }
+          const data = await res.json();
+          out.textContent = data.message;
+          out.className = 'ok';
+        } catch (e) {
+          out.textContent = 'Ошибка: ' + (e?.message || e);
+          out.className = 'err';
+        }
+      });
+    </script>
+  </body>
+</html>
