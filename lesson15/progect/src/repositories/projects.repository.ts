@@ -42,26 +42,50 @@ export type UpdateProjectInput = {
  */
 export type ProjectFilter = {
   name?: string;
+  status?: string; //фильтр по статусу (точное сравнение строки)
 };
 
-/** Список: весь или отфильтрованный по подстроке name (ILIKE). */
+/*Фильтр по статусу (точное сравнение строки)*/
+// export type ProjectFilterByStatus = {
+//   status?: string;
+// };
+
+/** Список: весь или отфильтрованный по подстроке name (ILIKE). */ // добавила фильтр по статусу
 export async function listProjects(
   filter: ProjectFilter = {}
 ): Promise<ProjectRowDb[]> {
-  const { name } = filter;
+  const { name, status } = filter;
 
-  if (!name) {
+  if (!name && !status) {
     const { rows } = await pool.query<ProjectRowDb>(
       `SELECT * FROM projects ORDER BY id DESC`
+    );
+    return rows;
+  }
+  if (name && !status) {
+    const { rows } = await pool.query<ProjectRowDb>(
+      `SELECT * FROM projects
+       WHERE name ILIKE $1
+     ORDER BY id DESC`,
+      [`%${name}%`]
+    );
+    return rows;
+  }
+  if (status && !name) {
+    const { rows } = await pool.query<ProjectRowDb>(
+      `SELECT * FROM projects
+       WHERE status = $1
+     ORDER BY id DESC`,
+      [status]
     );
     return rows;
   }
 
   const { rows } = await pool.query<ProjectRowDb>(
     `SELECT * FROM projects
-       WHERE name ILIKE $1
+       WHERE status = $2 AND name ILIKE $1
      ORDER BY id DESC`,
-    [`%${name}%`]
+    [`%${name}%`, status]
   );
   return rows;
 }
@@ -75,14 +99,14 @@ export async function listProjects(
  */
 export async function createProject(
   data: NewProjectInput
-): Promise<ProjectRowDb> {
+): Promise<ProjectRowDb | null> {
   const { rows } = await pool.query<ProjectRowDb>(
     `INSERT INTO projects (name, description, status)
      VALUES ($1, COALESCE($2, ''), COALESCE($3, 'todo'))
      RETURNING id, name, description, status, created_at`,
     [data.name, data.description ?? null, data.status ?? null]
   );
-  return rows[0];
+  return rows[0] ?? null;
 }
 
 /** Получить один проект по id. Если нет — вернём null. */

@@ -14,6 +14,28 @@ async function init() {
     );
   `);
   console.log('✅ Таблица projects готова');
-  await pool.end();
+  // await pool.end();
 }
-init();
+//Создаем таблицу с задачами для проектов
+async function createTableTasks() {
+  await pool.query(`
+        CREATE TABLE IF NOT EXISTS tasks(
+          id SERIAL PRIMARY KEY NOT NULL,
+          project_id INTEGER NOT NULL,
+          title TEXT NOT NULL,
+          is_done BOOLEAN NOT NULL DEFAULT false,
+          created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+          FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE
+        );
+    `);
+  console.log('✅ Таблица tasks готова');
+}
+
+async function main() {
+  await init();
+  await createTableTasks();
+  await pool.end();
+  console.log('✅ Все таблицы созданы');
+}
+
+main();
